@@ -30,7 +30,7 @@ export class TeamcityPlugin implements IPlugin {
         this.settings = settings;
         this.logger.info('init');
 
-        this.buildFetcher = new BuildFetcher(this.logger, watchdogKicker);
+        this.buildFetcher = new BuildFetcher(this.logger, watchdogKicker, this.mongo);
 
         this.scheduler.registerCallback(this.refreshBuild, this, 5000);
     }

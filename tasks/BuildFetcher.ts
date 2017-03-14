@@ -1,8 +1,9 @@
+import { IMongoCollection } from '../data-access/IMongoCollection';
 import { TeamcityProject } from '../models/TeamcityProject';
 import { TeamcityDeveloper } from '../models/TeamcityDeveloper';
 import { TeamcityBuild } from '../models/TeamcityBuild';
 import { TeamCityServer, TeamCitySettings } from '../Settings';
-import { wrapRestCall, ILogger, IWatchdogKicker } from 'dmdashboard-core';
+import { wrapRestCall, ILogger, IWatchdogKicker, MongoConnection } from 'dmdashboard-core';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import * as nodeRestClient from 'node-rest-client';
@@ -19,9 +20,10 @@ let request_args = {
 export class BuildFetcher {
     private requestInProgress: boolean;
     private lastSettings: TeamCitySettings;
+    private developerCollection : TeamcityDeveloperCollection;
 
-    constructor(private logger: ILogger, private watchdogKicker: IWatchdogKicker) {
-
+    constructor(private logger: ILogger, private watchdogKicker: IWatchdogKicker, private mongo : MongoConnection) {
+        this.developerCollection = new TeamcityDeveloperCollection(this.mongo.getCollection("teamcity_developers"));
     }
 
     private timeSinceLastSync(server, area) {
@@ -40,10 +42,10 @@ export class BuildFetcher {
     }
 
     private getExistingDeveloper(id): Promise<TeamcityDeveloper> {
-        return Promise.resolve(null);
+        return this.developerCollection.getById(id);
     }
 
-    private saveUser(userDetails : TeamcityDeveloper, server : TeamCityServer, existingUser : TeamcityDeveloper) {
+    private saveUser(userDetails : TeamcityDeveloper, server : TeamCityServer, existingUser : TeamcityDeveloper) : Promise<TeamcityDeveloper> {
         var user = existingUser ? existingUser : new TeamcityDeveloper();
         this.logger.debug((existingUser ? 'Force refreshing developer: ' : 'New developer found: ') + userDetails.username);
         AutoMapper.map('restdeveloper', 'mongodeveloper', userDetails, user);
@@ -52,7 +54,7 @@ export class BuildFetcher {
             name: server.name,
             url: server.url
         };
-        user.save();
+        return this.developerCollection.saveOrCreate(user);
     }
 
     private processUsers(userList, server, forceRefresh) {
