@@ -4,18 +4,21 @@
   "description": "",
   "main": "./bin/pluginFactory.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc && mocha bin/tests/**/*.js",
+    "test:auto": "mocha --watch bin/tests/**/*.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/bluebird": "^3.5.0",
     "@types/lodash": "^4.14.55",
+    "@types/mocha": "^2.2.40",
     "@types/moment": "^2.13.0",
     "@types/mongodb": "^2.1.41",
     "@types/node": "^7.0.8",
     "mocha": "^3.2.0",
-    "ts-node": "^2.1.0"
+    "ts-node": "^2.1.0",
+    "typescript": "^2.2.1"
   },
   "dependencies": {
     "bluebird": "^3.5.0",

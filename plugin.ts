@@ -1,10 +1,10 @@
-import { BuildFetcher } from './tasks/BuildFetcher';
+import { SyncManager } from './tasks/sync/SyncManager';
 import { Injectable } from 'injection-js';
 import { IPlugin, SocketManager, MongoConnection, WatchDog, Scheduler, ILogger, SettingsGetter, IWatchdogKicker } from 'dmdashboard-core';
 
 @Injectable()
 export class TeamcityPlugin implements IPlugin {
-    private buildFetcher: BuildFetcher;
+    private syncManager: SyncManager;
     private logger: ILogger;
 
     name = 'dmplugin-teamcity';
@@ -30,7 +30,7 @@ export class TeamcityPlugin implements IPlugin {
         this.settings = settings;
         this.logger.info('init');
 
-        this.buildFetcher = new BuildFetcher(this.logger, watchdogKicker, this.mongo);
+        this.syncManager = new SyncManager(this.logger, watchdogKicker, this.mongo);
 
         this.scheduler.registerCallback(this.refreshBuild, this, 5000);
     }
@@ -38,7 +38,7 @@ export class TeamcityPlugin implements IPlugin {
     refreshBuild() {
         this.settings.get()
             .then(settings => {
-                //this.buildFetcher.refresh(settings);
+                //this.syncManager.refresh(settings);
             });
     }
 
