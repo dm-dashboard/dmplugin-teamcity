@@ -1,3 +1,4 @@
+import { TeamcityDeveloperCollection } from '../../data-access/TeamcityDeveloperCollection';
 import { TeamcityBuild } from '../../models/TeamcityBuild';
 import { TeamcityProject } from '../../models/TeamcityProject';
 import { DeveloperFetcher } from './DeveloperFetcher';
@@ -7,40 +8,40 @@ import * as nodeRestClient from 'node-rest-client';
 
 import { wrapRestCall, ILogger, IWatchdogKicker, MongoConnection } from 'dmdashboard-core';
 
-import { TeamCityServer, TeamCitySettings } from '../../Settings';
+import { ITeamCityServer, ITeamCitySettings } from '../../Settings';
 import { AutoMapper } from '../../util/AutoMapper';
 import { TeamcityDeveloper } from "../../models/TeamcityDeveloper";
 
 export class SyncManager {
     private requestInProgress: boolean;
-    private lastSettings: TeamCitySettings;
+    private lastSettings: ITeamCitySettings;
 
     private developerFetcher: DeveloperFetcher;
 
     constructor(private logger: ILogger, private watchdogKicker: IWatchdogKicker, private mongo: MongoConnection) {
-        this.developerFetcher = new DeveloperFetcher(logger, mongo);
+        this.developerFetcher = new DeveloperFetcher(logger, new TeamcityDeveloperCollection(this.mongo.getCollection("teamcity_developers")));
     }
 
-    private getAllProjects(server: TeamCityServer) : Promise<TeamcityProject[]> {
+    private getAllProjects(server: ITeamCityServer) : Promise<TeamcityProject[]> {
         return Promise.resolve([]);
     }
 
-    private getNewBuilds(server: TeamCityServer) : Promise<TeamcityBuild[]> {
+    private getNewBuilds(server: ITeamCityServer) : Promise<TeamcityBuild[]> {
         return Promise.resolve([]);
     }
 
-    private getAllUsers(server: TeamCityServer) : Promise<TeamcityDeveloper[]> {
+    private getAllUsers(server: ITeamCityServer) : Promise<TeamcityDeveloper[]> {
         return this.developerFetcher.refresh(server);
     }
 
-    private refreshForServer(server: TeamCityServer): Promise<TeamcityBuild[]> {
+    private refreshForServer(server: ITeamCityServer): Promise<TeamcityBuild[]> {
         this.logger.debug(`Refreshing for ${server.name}`);
         return this.getAllUsers(server)
             .then(() => this.getAllProjects(server))
             .then(() => this.getNewBuilds(server));
     }
 
-    private refreshServers(settings: TeamCitySettings): TeamCityServer[] {
+    private refreshServers(settings: ITeamCitySettings): ITeamCityServer[] {
         if (settings === null) {
             throw new Error('Plugin load error - missing settings [teamcity]');
         }
@@ -49,7 +50,7 @@ export class SyncManager {
             settings.servers = settings.servers.map(server => {
                 let client = new nodeRestClient.Client({ user: server.username, password: server.password });
                 server.client = client;
-                server.getUsers = wrapRestCall<TeamcityDeveloper[]>(client, 'users', server.url + '/httpAuth/app/rest/users', 'GET');
+                server.getUsers = wrapRestCall<{user : TeamcityDeveloper[]}>(client, 'users', server.url + '/httpAuth/app/rest/users', 'GET');
                 server.getProjects = wrapRestCall<TeamcityProject[]>(client, 'projects', server.url + '/httpAuth/app/rest/projects', 'GET');
                 server.getBuilds = wrapRestCall<TeamcityBuild[]>(client, 'builds', server.url + '/httpAuth/app/rest/builds', 'GET');
                 server.get = wrapRestCall<any>(client.get);
@@ -60,7 +61,7 @@ export class SyncManager {
         return this.lastSettings.servers;
     }
 
-    refresh(settings: TeamCitySettings) {
+    refresh(settings: ITeamCitySettings) {
         if (this.requestInProgress) {
             return;
         }

@@ -3,19 +3,20 @@ import { TeamcityDeveloper } from './models/TeamcityDeveloper';
 import * as nodeRestClient from 'node-rest-client';
 import { TeamcityBuild } from "./models/TeamcityBuild";
 
-export interface TeamCityServer {
+export interface ITeamCityServer {
     name : string;
     active : boolean;
     username : string;
     password : string;
     url : string;
-    getUsers : ({}) => Promise<TeamcityDeveloper[]>;
+    getUsers : ({}) => Promise<{ user : TeamcityDeveloper[]}>;
     getBuilds : ({}) => Promise<TeamcityBuild[]>;
     getProjects : ({}) => Promise<TeamcityProject[]>;
-    get : () => Promise<any>;
+    get : (url : string, options : {}) => Promise<any>;
     client : nodeRestClient.Client;
+    lastFullSync : any;
 }
 
-export interface TeamCitySettings {
-    servers : TeamCityServer[];
+export interface ITeamCitySettings {
+    servers : ITeamCityServer[];
 }

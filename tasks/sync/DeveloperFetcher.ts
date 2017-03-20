@@ -9,7 +9,7 @@ import { TeamcityDeveloperCollection } from '../../data-access/TeamcityDeveloper
 
 import { TeamcityDeveloper } from '../../models/TeamcityDeveloper';
 
-import { TeamCityServer } from '../../Settings';
+import { ITeamCityServer } from '../../Settings';
 import { AutoMapper } from '../../util/AutoMapper';
 
 const timeBetweenFullSyncs = 60;
@@ -21,10 +21,9 @@ let request_args = {
 
 export class DeveloperFetcher {
     private requestInProgress: boolean;
-    private developerCollection : TeamcityDeveloperCollection;
 
-    constructor(private logger: ILogger, private mongo : MongoConnection) {
-        this.developerCollection = new TeamcityDeveloperCollection(this.mongo.getCollection("teamcity_developers"));
+    constructor(private logger: ILogger, private developerCollection: IMongoCollection<TeamcityDeveloper>) {
+
     }
 
     private timeSinceLastSync(server, area) {
@@ -38,7 +37,7 @@ export class DeveloperFetcher {
         return this.developerCollection.getById(id);
     }
 
-    private saveUser(userDetails : TeamcityDeveloper, server : TeamCityServer, existingUser : TeamcityDeveloper) : Promise<TeamcityDeveloper> {
+    private saveUser(userDetails: TeamcityDeveloper, server: ITeamCityServer, existingUser: TeamcityDeveloper): Promise<TeamcityDeveloper> {
         var user = existingUser ? existingUser : new TeamcityDeveloper();
         this.logger.debug((existingUser ? 'Force refreshing developer: ' : 'New developer found: ') + userDetails.username);
         AutoMapper.map('restdeveloper', 'mongodeveloper', userDetails, user);
@@ -50,15 +49,15 @@ export class DeveloperFetcher {
         return this.developerCollection.saveOrCreate(user);
     }
 
-    private processUsers(userList, server, forceRefresh) {
+    private processUsers(userList, server : ITeamCityServer, forceRefresh) {
         var users = userList.user;
         return users.map(user => {
             return this.getExistingDeveloper(user.id)
                 .then(userExists => {
                     if (forceRefresh || !userExists) {
-                        return server.rest_generic_get(server.url + user.href, request_args)
+                        return server.get(server.url + user.href, request_args)
                             .then(user => this.saveUser(user, server, userExists))
-                            .catch(error => this.logger.error(`Could not get user for [${user.href}]`, error))
+                            .catch(error => this.logger.errorException(`Could not get user for [${user.href}]`, error))
                     }
                 })
                 .then(result => {
@@ -71,17 +70,20 @@ export class DeveloperFetcher {
         });
     }
 
-    private getAllUsers(server: TeamCityServer) : Promise<TeamcityDeveloper[]> {
+    private getAllUsers(server: ITeamCityServer): Promise<TeamcityDeveloper[]> {
         this.logger.debug('Checking for new TeamCity users');
         var doFullSync = this.timeSinceLastSync(server, 'developers') >= timeBetweenFullSyncs;
         return server.getUsers(request_args)
             .then(users => this.processUsers(users, server, doFullSync))
             .then(() => server)
-            .catch(error => this.logger.error("Could not get users", error));
+            .catch(error => {
+                this.logger.errorException("Could not get users", error)
+                throw error;
+            });
     }
 
-    refresh(server: TeamCityServer) : Promise<TeamcityDeveloper[]> {
+    refresh(server: ITeamCityServer): Promise<TeamcityDeveloper[]> {
         this.logger.debug('Refreshing TeamCity Developers');
-        return this.getAllUsers(server);        
+        return this.getAllUsers(server);
     }
 }

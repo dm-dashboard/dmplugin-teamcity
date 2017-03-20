@@ -1,7 +1,7 @@
-import { IMongoCollection } from './IMongoCollection';
+import { IMongoCollection, IMongoDocument } from './IMongoCollection';
 import { Collection } from 'mongodb';
 
-export class BaseCollection<T> implements IMongoCollection<T> {
+export class BaseCollection<T extends IMongoDocument> implements IMongoCollection<T> {
     collection : Collection;
     constructor(collection : Collection) {
         this.collection = collection;
@@ -23,11 +23,11 @@ export class BaseCollection<T> implements IMongoCollection<T> {
         throw new Error('Method not implemented.');
     }
 
-    deleteById(id: any): Promise<T> {
+    deleteById(id: any): Promise<boolean> {
         throw new Error('Method not implemented.');
     }
 
-    deleteDocument(document: T): Promise<T> {
+    deleteDocument(document: T): Promise<boolean> {
         throw new Error('Method not implemented.');
     }
     

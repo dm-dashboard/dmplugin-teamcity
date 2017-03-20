@@ -1,4 +1,5 @@
-export class TeamcityDeveloper {
+import { IMongoDocument } from '../data-access/IMongoCollection';
+export class TeamcityDeveloper implements IMongoDocument {
     id: number;
     username: string;
     href: string;
