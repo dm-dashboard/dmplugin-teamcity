@@ -11,12 +11,11 @@ import { IMongoCollection, IMongoDocument } from '../data-access/IMongoCollectio
 import { AppLogger, ILogger } from 'dmdashboard-core';
 import * as Mocks from './Mocks';
 
-let logger: ILogger = new TestLogger();
+let logger: ILogger = new TestLogger(false);
 let assert = chai.assert;
 let expect = chai.expect;
 chai.should();
 
-console.log(new Date());
 describe('SyncManager ->', () => {
     describe('DeveloperFetcher ->', () => {
 
@@ -38,30 +37,75 @@ describe('SyncManager ->', () => {
                 let collection = Mocks.getMockCollection(savedDevelopers);
                 let server = Mocks.getServer();
                 let allDevelopers: TeamcityDeveloper[] = [
-                    Mocks.getUser(1, 'test1', 'test@test.com', new Date())
+                    Mocks.getUser(1, 'test1', 'test@test.com')
                 ];
                 server.setup(s => s.getUsers(TypeMoq.It.isAny()))
                     .returns(() => Promise.resolve({ user: allDevelopers }))
                     .verifiable(TypeMoq.Times.exactly(1));
-                server.setup(s => s.get(TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
+                server.setup(s => s.get(allDevelopers[0].id.toString(), TypeMoq.It.isAny()))
                     .returns((url, options) => Promise.resolve(allDevelopers[0]))
-                    .verifiable(TypeMoq.Times.exactly(2));;
+                    .verifiable(TypeMoq.Times.exactly(1));;
 
                 let sut = getSUT(collection.object);
                 return sut.refresh(server.object)
                     .then(() => {
-                        collection.verifyAll();
+                        server.verifyAll();
                         expect(savedDevelopers).to.have.lengthOf(1);
                         let savedDeveloper = savedDevelopers[0];
                         assertUser(savedDeveloper, allDevelopers[0]);
                     });
             });
-            it('should fetch an existing user and update in mongo when force refresh enabled', () => {
-                assert.equal(1, 1);
+
+            it('should fetch an existing user and update in mongo', () => {
+                let savedDevelopers = [
+                     Mocks.getUser(1, 'test_old', 'test@test.com')
+                ];
+                let collection = Mocks.getMockCollection(savedDevelopers);
+                let server = Mocks.getServer();
+                let allDevelopers: TeamcityDeveloper[] = [
+                    Mocks.getUser(1, 'test_new', 'test@test.com')
+                ]; 
+                server.setup(s => s.getUsers(TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve({ user: allDevelopers }))
+                    .verifiable(TypeMoq.Times.exactly(1));
+                server.setup(s => s.get(TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
+                    .returns((url, options) => Promise.resolve(allDevelopers[0]))
+                    .verifiable(TypeMoq.Times.exactly(1));;
+
+                let sut = getSUT(collection.object);
+                return sut.refresh(server.object)
+                    .then(() => {
+                        server.verifyAll();
+                        expect(savedDevelopers).to.have.lengthOf(1);
+                        let savedDeveloper = savedDevelopers[0];
+                        assertUser(savedDeveloper, allDevelopers[0]);
+                    });
             });
-            it('should not fetch an existing user if force refresh is false', () => {
-                assert.equal(1, 1);
+
+            it('should fetch an existing user and not update if no changes', () => {
+                let savedDevelopers = [
+                     Mocks.getUser(1, 'test', 'test@test.com')
+                ];
+                let collection = Mocks.getMockCollection(savedDevelopers);
+                let server = Mocks.getServer();
+                let allDevelopers: TeamcityDeveloper[] = [
+                    Mocks.getUser(1, 'test', 'test@test.com')
+                ]; 
+                server.setup(s => s.getUsers(TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve({ user: allDevelopers }))
+                    .verifiable(TypeMoq.Times.exactly(1));
+                server.setup(s => s.get(TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
+                    .returns((url, options) => Promise.resolve(allDevelopers[0]))
+                    .verifiable(TypeMoq.Times.exactly(1));
+
+                let sut = getSUT(collection.object);
+                return sut.refresh(server.object)
+                    .then(() => {
+                        server.verifyAll();
+                        collection.verify(c => c.saveOrCreate(TypeMoq.It.isAny()),TypeMoq.Times.never());
+                    });
             });
+
         });
     });
 

@@ -1,10 +1,18 @@
 import { ILogger } from "dmdashboard-core";
 
 export class TestLogger implements ILogger {
+
+    constructor(private logNonErrorsToConsole : boolean = false) {
+
+    }
+
     fork(name: string): ILogger {
         return this;
     }
     info(message: any) {
+        if (!this.logNonErrorsToConsole){
+            return;
+        }
         if (typeof (message) === 'object') {
             console.dir(message);
         } else {
@@ -19,6 +27,9 @@ export class TestLogger implements ILogger {
         console.error(error);
     }
     debug(message: any) {
+        if (!this.logNonErrorsToConsole){
+            return;
+        }
         console.log(`debug - ${message}`);
     }
 }

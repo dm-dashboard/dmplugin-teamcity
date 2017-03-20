@@ -41,8 +41,11 @@ export class DeveloperFetcher {
     }
 
     private saveUser(userDetails: TeamcityDeveloper, server: ITeamCityServer, existingUser: TeamcityDeveloper): Promise<TeamcityDeveloper> {
+        if (_.isEqual(existingUser, userDetails)) {
+            return;
+        }
         var user = existingUser ? existingUser : new TeamcityDeveloper();
-        this.logger.debug((existingUser ? 'Force refreshing developer: ' : 'New developer found: ') + userDetails.username);
+        this.logger.debug((existingUser ? 'Updating developer: ' : 'New developer found: ') + userDetails.username);
         AutoMapper.map('restdeveloper', 'mongodeveloper', userDetails, user);
         user.server = {
             name: server.name,
@@ -55,12 +58,10 @@ export class DeveloperFetcher {
         var users = userList.user;
         return users.map(user => {
             return this.getExistingDeveloper(user.id)
-                .then(userExists => {
-                    if (forceRefresh || !userExists) {
-                        return server.get(server.url + user.href, request_args)
-                            .then(user => this.saveUser(user, server, userExists))
-                            .catch(error => this.logger.errorException(`Could not get user for [${user.href}]`, error))
-                    }
+                .then(existingUser => {
+                    return server.get(server.url + user.href, request_args)
+                        .then(user => this.saveUser(user, server, existingUser))
+                        .catch(error => this.logger.errorException(`Could not get user for [${user.href}]`, error))
                 })
                 .then(result => {
                     if (!server.lastFullSync) {
