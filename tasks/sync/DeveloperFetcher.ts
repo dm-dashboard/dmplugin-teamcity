@@ -11,6 +11,7 @@ import { TeamcityDeveloper } from '../../models/TeamcityDeveloper';
 
 import { ITeamCityServer } from '../../Settings';
 import { AutoMapper } from '../../util/AutoMapper';
+import { Convert } from '../../util/Convert';
 
 const timeBetweenFullSyncs = 60;
 let request_args = {
@@ -23,6 +24,8 @@ export class DeveloperFetcher {
     private requestInProgress: boolean;
 
     constructor(private logger: ILogger, private developerCollection: IMongoCollection<TeamcityDeveloper>) {
+        AutoMapper.createCustomMapping('restdeveloper', 'mongodeveloper', { createInDestination: true })
+            .forMember('lastLogin', Convert.parseTeamcityDate);
 
     }
 
@@ -41,7 +44,6 @@ export class DeveloperFetcher {
         var user = existingUser ? existingUser : new TeamcityDeveloper();
         this.logger.debug((existingUser ? 'Force refreshing developer: ' : 'New developer found: ') + userDetails.username);
         AutoMapper.map('restdeveloper', 'mongodeveloper', userDetails, user);
-        user.linkSlave = false;
         user.server = {
             name: server.name,
             url: server.url
@@ -49,7 +51,7 @@ export class DeveloperFetcher {
         return this.developerCollection.saveOrCreate(user);
     }
 
-    private processUsers(userList, server : ITeamCityServer, forceRefresh) {
+    private processUsers(userList, server: ITeamCityServer, forceRefresh) {
         var users = userList.user;
         return users.map(user => {
             return this.getExistingDeveloper(user.id)
@@ -75,7 +77,6 @@ export class DeveloperFetcher {
         var doFullSync = this.timeSinceLastSync(server, 'developers') >= timeBetweenFullSyncs;
         return server.getUsers(request_args)
             .then(users => this.processUsers(users, server, doFullSync))
-            .then(() => server)
             .catch(error => {
                 this.logger.errorException("Could not get users", error)
                 throw error;

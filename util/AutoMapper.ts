@@ -1,11 +1,11 @@
 //http://johnkalberer.com/2011/08/24/automapper-in-javascript/
 import * as  _ from 'lodash';
 
+const mappings = {};
+
 export class AutoMapper {
-    static mappings = {}
- 
-    static map(sourceKey : string, destinationKey : string, sourceObject : {}, destinationObject : {}, oneTimeOptions? : {}) {
-        var customMapping = this.mappings[sourceKey + destinationKey];
+    static map(sourceKey: string, destinationKey: string, sourceObject: {}, destinationObject: {}, oneTimeOptions?: {}) {
+        var customMapping = mappings[sourceKey + destinationKey];
         oneTimeOptions = oneTimeOptions || {};
         var options = customMapping ? customMapping.options : {};
         options = _.extend(_.extend({}, options), oneTimeOptions);
@@ -30,4 +30,24 @@ export class AutoMapper {
             }
         }
     }
+
+    static mapToNew(sourceKey, destinationKey, sourceObject) {
+        var newObject = {};
+        this.map(sourceKey, destinationKey, sourceObject, newObject, { createInDestination: true });
+        return newObject;
+    };
+
+    static createCustomMapping(sourceKey, destinationKey, options) {
+        options = _.extend({}, options);
+        var combinedKey = sourceKey + destinationKey;
+        mappings[combinedKey] = {};
+        mappings[combinedKey].options = options;
+        var functions = {
+            forMember: function (key, func) {
+                mappings[combinedKey][key] = func;
+                return functions;
+            }
+        };
+        return functions;
+    };
 }

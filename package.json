@@ -22,7 +22,9 @@
     "typescript": "^2.2.1"
   },
   "dependencies": {
+    "@types/chai": "^3.4.35",
     "bluebird": "^3.5.0",
+    "chai": "^3.5.0",
     "injection-js": "^2.0.0-rc.2",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
