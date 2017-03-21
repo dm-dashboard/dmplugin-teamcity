@@ -5,4 +5,7 @@ machine:
 compile:
   override:
       - npm run build
-      
+
+test:
+  override:
+      - echo "To tests for now"
