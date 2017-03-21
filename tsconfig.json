@@ -11,7 +11,7 @@
         "emitDecoratorMetadata": true
     },
     "files": [
-        "pluginFactory.ts"
+        "pluginfactory.ts"
     ],
     "include": [
         "tests/**/*.ts"
