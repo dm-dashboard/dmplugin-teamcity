@@ -4,7 +4,8 @@
   "description": "",
   "main": "./bin/pluginFactory.js",
   "scripts": {
-    "test": "tsc && mocha bin/tests/**/*.js",
+    "build" : "tsc",
+    "test": "mocha bin/tests/**/*.js",
     "test:auto": "mocha --watch bin/tests/**/*.js"
   },
   "author": "",
