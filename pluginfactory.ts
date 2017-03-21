@@ -1,6 +1,6 @@
 import { TeamcityPlugin } from './plugin';
 import { FactoryProvider } from 'injection-js';
-import { IPlugin, SocketManager, MongoConnection, WatchDog, Scheduler } from 'dmdashboard-core';
+import { IPlugin, SocketManager, MongoConnection, WatchDog, Scheduler } from 'dm-dashboard-core';
 require('reflect-metadata');
 
 export default class TeamcityPluginFactory implements FactoryProvider {

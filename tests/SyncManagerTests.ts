@@ -8,7 +8,7 @@ import * as TypeMoq from 'typemoq';
 import { TeamcityDeveloper } from '../models/TeamcityDeveloper';
 import { DeveloperFetcher } from '../tasks/sync/DeveloperFetcher';
 import { IMongoCollection, IMongoDocument } from '../data-access/IMongoCollection';
-import { AppLogger, ILogger } from 'dmdashboard-core';
+import { AppLogger, ILogger } from 'dm-dashboard-core';
 import * as Mocks from './Mocks';
 
 let logger: ILogger = new TestLogger(false);

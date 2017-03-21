@@ -1,6 +1,6 @@
 import { SyncManager } from './tasks/sync/SyncManager';
 import { Injectable } from 'injection-js';
-import { IPlugin, SocketManager, MongoConnection, WatchDog, Scheduler, ILogger, SettingsGetter, IWatchdogKicker } from 'dmdashboard-core';
+import { IPlugin, SocketManager, MongoConnection, WatchDog, Scheduler, ILogger, SettingsGetter, IWatchdogKicker } from 'dm-dashboard-core';
 
 @Injectable()
 export class TeamcityPlugin implements IPlugin {

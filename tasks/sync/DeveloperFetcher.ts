@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import * as _ from 'lodash';
 import * as nodeRestClient from 'node-rest-client';
 
-import { wrapRestCall, ILogger, MongoConnection } from 'dmdashboard-core';
+import { wrapRestCall, ILogger, MongoConnection } from 'dm-dashboard-core';
 
 import { IMongoCollection } from '../../data-access/IMongoCollection';
 import { TeamcityDeveloperCollection } from '../../data-access/TeamcityDeveloperCollection';

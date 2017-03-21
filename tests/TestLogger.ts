@@ -1,4 +1,4 @@
-import { ILogger } from "dmdashboard-core";
+import { ILogger } from "dm-dashboard-core";
 
 export class TestLogger implements ILogger {
 

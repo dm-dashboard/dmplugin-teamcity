@@ -6,7 +6,7 @@ import * as moment from 'moment';
 import * as _ from 'lodash';
 import * as nodeRestClient from 'node-rest-client';
 
-import { wrapRestCall, ILogger, IWatchdogKicker, MongoConnection } from 'dmdashboard-core';
+import { wrapRestCall, ILogger, IWatchdogKicker, MongoConnection } from 'dm-dashboard-core';
 
 import { ITeamCityServer, ITeamCitySettings } from '../../Settings';
 import { AutoMapper } from '../../util/AutoMapper';
