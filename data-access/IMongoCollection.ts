@@ -1,5 +1,8 @@
+import { ObjectID} from 'mongodb';
+
 export interface IMongoDocument {
-    id : number;
+    id : any;
+    _id : ObjectID;
 }
 
 export interface IMongoCollection<T extends IMongoDocument> {

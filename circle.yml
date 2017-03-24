@@ -8,4 +8,4 @@ compile:
 
 test:
   override:
-      - echo "To tests for now"
+      - echo "No tests for now"

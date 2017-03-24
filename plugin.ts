@@ -13,7 +13,7 @@ export class TeamcityPlugin implements IPlugin {
         servers: [
             {
                 name: 'Default',
-                path: 'http://123'
+                url: 'http://123'
             }
         ]
     };
@@ -38,7 +38,7 @@ export class TeamcityPlugin implements IPlugin {
     refreshBuild() {
         this.settings.get()
             .then(settings => {
-                //this.syncManager.refresh(settings);
+                this.syncManager.refresh(settings);
             });
     }
 

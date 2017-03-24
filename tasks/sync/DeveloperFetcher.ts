@@ -83,9 +83,17 @@ export class DeveloperFetcher {
                 throw error;
             });
     }
+    private lastRefresh: moment.Moment;
+    private refreshEverySeconds = 60 * 60;
 
-    refresh(server: ITeamCityServer): Promise<TeamcityDeveloper[]> {
+    refresh(server: ITeamCityServer): Promise<any> {
+        let secondsSinceRefresh = moment().diff(this.lastRefresh, 'seconds');
+        if (this.lastRefresh && (secondsSinceRefresh <= this.refreshEverySeconds)) {
+            return Promise.resolve();
+        }
         this.logger.debug('Refreshing TeamCity Developers');
-        return this.getAllUsers(server);
+        return this.getAllUsers(server)
+            .catch(err => this.logger.error(err))
+            .then(() => this.lastRefresh = moment());
     }
 }

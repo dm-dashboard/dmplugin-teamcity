@@ -1,4 +1,8 @@
-export class TeamcityBuild {
+import { IMongoDocument } from '../data-access/IMongoCollection';
+import { ObjectID } from "mongodb";
+
+export class TeamcityBuild implements IMongoDocument {
+    _id : ObjectID;
     id: number;
     buildType: {
         id: string;

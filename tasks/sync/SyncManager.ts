@@ -22,15 +22,15 @@ export class SyncManager {
         this.developerFetcher = new DeveloperFetcher(logger, new TeamcityDeveloperCollection(this.mongo.getCollection("teamcity_developers")));
     }
 
-    private getAllProjects(server: ITeamCityServer) : Promise<TeamcityProject[]> {
+    private getAllProjects(server: ITeamCityServer): Promise<TeamcityProject[]> {
         return Promise.resolve([]);
     }
 
-    private getNewBuilds(server: ITeamCityServer) : Promise<TeamcityBuild[]> {
+    private getNewBuilds(server: ITeamCityServer): Promise<TeamcityBuild[]> {
         return Promise.resolve([]);
     }
 
-    private getAllUsers(server: ITeamCityServer) : Promise<TeamcityDeveloper[]> {
+    private getAllUsers(server: ITeamCityServer): Promise<TeamcityDeveloper[]> {
         return this.developerFetcher.refresh(server);
     }
 
@@ -48,9 +48,15 @@ export class SyncManager {
         if (!_.isEqual(this.lastSettings, settings)) {
             this.logger.debug('Settings changed, recreating client');
             settings.servers = settings.servers.map(server => {
-                let client = new nodeRestClient.Client({ user: server.username, password: server.password });
+                let client = new nodeRestClient.Client({
+                    user: server.username,
+                    password: server.password,
+                    connection: {
+                        strictSSL: false
+                    }
+                });
                 server.client = client;
-                server.getUsers = wrapRestCall<{user : TeamcityDeveloper[]}>(client, 'users', server.url + '/httpAuth/app/rest/users', 'GET');
+                server.getUsers = wrapRestCall<{ user: TeamcityDeveloper[] }>(client, 'users', server.url + '/httpAuth/app/rest/users', 'GET');
                 server.getProjects = wrapRestCall<TeamcityProject[]>(client, 'projects', server.url + '/httpAuth/app/rest/projects', 'GET');
                 server.getBuilds = wrapRestCall<TeamcityBuild[]>(client, 'builds', server.url + '/httpAuth/app/rest/builds', 'GET');
                 server.get = wrapRestCall<any>(client.get);
@@ -69,6 +75,8 @@ export class SyncManager {
         this.logger.debug('Syncing Teamcity Data');
         this.watchdogKicker();
 
-        Promise.all(this.refreshServers(settings).map(server => this.refreshForServer(server)));
+        Promise.all(this.refreshServers(settings).map(server => this.refreshForServer(server)))
+            .catch(err => this.logger.error(err))
+            .then(() => this.requestInProgress = false);
     }
 }

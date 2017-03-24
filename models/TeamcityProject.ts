@@ -1,7 +1,10 @@
+import { IMongoDocument } from '../data-access/IMongoCollection';
 import { TeamcityBuild } from './TeamcityBuild';
+import { ObjectID } from "mongodb";
 
-export class TeamcityProject {
+export class TeamcityProject implements IMongoDocument {
     id: string;
+    _id : ObjectID;
     name : string;
     href : string;
     webUrl : string;
